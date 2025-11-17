@@ -6,9 +6,8 @@ import Image from "next/image";
 import Cookies from "js-cookie";
 
 const API_BASE = "https://admin-dashboard.drivestai.com";
-const CARS_URL = `${API_BASE}/admin/cars`;
+const CARS_URL = `${API_BASE}/admin/cars?initial=true`;
 const PAGE_SIZE = 10;
-
 
 // function Badge({ children, color }) {
 //   const cls =
@@ -53,7 +52,7 @@ const PAGE_SIZE = 10;
 
 function Person({ name, avatar }) {
   const isLocal = typeof avatar === "string" && avatar.startsWith("/");
-  const src = isLocal ? avatar : (avatar || "/user1.png");
+  const src = isLocal ? avatar : avatar || "/user1.png";
   return (
     <div className="flex items-center gap-3">
       <div className="relative h-9 w-9">
@@ -66,20 +65,31 @@ function Person({ name, avatar }) {
           unoptimized={!isLocal}
         />
       </div>
-      <span className="text-[#333333] font-inter text-[16px]">{name || "Unknown"}</span>
+      <span className="text-[#333333] font-inter text-[16px]">
+        {name || "Unknown"}
+      </span>
     </div>
   );
 }
 
 function EyeIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="white" strokeWidth="2" />
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+        stroke="white"
+        strokeWidth="2"
+      />
       <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="2" />
     </svg>
   );
 }
-
 
 const fmtDate = (d) => {
   if (!d) return "";
@@ -121,7 +131,9 @@ export default function AgentApprovalTable() {
         // token (optional)
         let token = Cookies.get("token") || localStorage.getItem("token") || "";
         if (token && token.startsWith('"') && token.endsWith('"')) {
-          try { token = JSON.parse(token); } catch {}
+          try {
+            token = JSON.parse(token);
+          } catch {}
         }
         if (token.startsWith("Bearer ")) token = token.slice(7);
 
@@ -135,22 +147,43 @@ export default function AgentApprovalTable() {
         if (!res.ok) {
           const text = await res.text().catch(() => "");
           let msg;
-          try { msg = JSON.parse(text)?.message || JSON.parse(text)?.error; } catch {}
+          try {
+            msg = JSON.parse(text)?.message || JSON.parse(text)?.error;
+          } catch {}
           throw new Error(msg || text || `HTTP ${res.status}`);
         }
 
         const body = await res.json();
-        const list = Array.isArray(body) ? body : body?.cars || body?.data || body?.items || [];
+        console.log("body", body);
+        const list = Array.isArray(body)
+          ? body
+          : body?.cars || body?.data || body?.items || [];
 
         const mapped = list.map((c, i) => ({
           id: c._id ?? c.id ?? `${i}`,
           sl: c.sl || `#${String(c._id || c.id || i).slice(-4)}`,
           car: c.carName || c.name || c.model || c.title || "Unknown Car",
           location: normalizeLocation(c.location),
-          price: typeof c.price === "number" ? `$${c.price.toLocaleString()}` : (c.price || "$0"),
-          margin: typeof c.margin === "number" ? `$${c.margin.toLocaleString()}` : (c.margin || "$0"),
-          name: c.agentName || c.agent?.name || c.ownerName || c.sellerName || "Unknown",
-          avatar: c.agentAvatar || c.agent?.avatar || c.ownerAvatar || c.sellerAvatar || "/user1.png",
+          price:
+            typeof c.price === "number"
+              ? `$${c.price.toLocaleString()}`
+              : c.price || "$0",
+          margin:
+            typeof c.margin === "number"
+              ? `$${c.margin.toLocaleString()}`
+              : c.margin || "$0",
+          name:
+            c.agentName ||
+            c.agent?.name ||
+            c.ownerName ||
+            c.sellerName ||
+            "Unknown",
+          avatar:
+            c.agentAvatar ||
+            c.agent?.avatar ||
+            c.ownerAvatar ||
+            c.sellerAvatar ||
+            "/user1.png",
           date: fmtDate(c.createdAt || c.dateAdded || c.created_on),
           status: String(c.status || "pending").toLowerCase(),
         }));
@@ -162,7 +195,9 @@ export default function AgentApprovalTable() {
         if (!off) setLoading(false);
       }
     })();
-    return () => { off = true; };
+    return () => {
+      off = true;
+    };
   }, []);
 
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
@@ -172,7 +207,8 @@ export default function AgentApprovalTable() {
   }, [rows, page]);
 
   const pageList = useMemo(() => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 7)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     const out = [1];
     const left = Math.max(2, page - 2);
     const right = Math.min(totalPages - 1, page + 2);
@@ -210,19 +246,31 @@ export default function AgentApprovalTable() {
         <tbody className="bg-white">
           {!loading && rows.length === 0 && (
             <tr>
-              <td colSpan={9} className="py-6 text-center text-gray-500">No cars found</td>
+              <td colSpan={9} className="py-6 text-center text-gray-500">
+                No cars found
+              </td>
             </tr>
           )}
 
           {currentRows.map((r) => (
             <tr key={r.id || r.sl} className="align-middle">
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px] whitespace-nowrap">{r.sl}</td>
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">{r.car}</td>
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">{r.location}</td>
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">{r.price}</td>
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px] whitespace-nowrap">
+                {r.sl}
+              </td>
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+                {r.car}
+              </td>
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+                {r.location}
+              </td>
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+                {r.price}
+              </td>
               {/* <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">{r.margin}</td> */}
               {/* <td className="py-4 pr-4"><Person name={r.name} avatar={r.avatar} /></td> */}
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">{r.date}</td>
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+                {r.date}
+              </td>
               <td className="py-4 pr-2">
                 <button
                   type="button"
@@ -250,13 +298,17 @@ export default function AgentApprovalTable() {
 
           {pageList.map((p, i) =>
             p === "…" ? (
-              <span key={`dots-${i}`} className="px-2 text-slate-500">…</span>
+              <span key={`dots-${i}`} className="px-2 text-slate-500">
+                …
+              </span>
             ) : (
               <button
                 key={`page-${p}`}
                 onClick={() => setPage(Number(p))}
                 className={`w-[30px] h-[30px] rounded-full font-inter text-[16px] flex items-center justify-center ${
-                  p === page ? "bg-[#015093] text-white" : "text-[#333333] hover:bg-slate-50"
+                  p === page
+                    ? "bg-[#015093] text-white"
+                    : "text-[#333333] hover:bg-slate-50"
                 }`}
                 aria-current={p === page ? "page" : undefined}
               >
