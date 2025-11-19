@@ -174,7 +174,6 @@ export default function AgentApprovalTable() {
 
       setRows((prev) => prev.filter((r) => r.id !== confirmId));
 
-      // যদি current পেজ empty হয়ে যায় আর আগের পেজ থাকে, setPage কমিয়ে দেই
       setPage((p) => {
         const newTotalPages = Math.max(
           1,
