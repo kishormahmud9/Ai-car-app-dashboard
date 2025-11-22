@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Audi",
+    "image": "https://images.seeklogo.com/logo-png/1/2/audi-logo-png_seeklogo-13445.png",
+    "status": "active"
+  },
+  {
+    "name": "Nissan",
+    "image": "https://images.seeklogo.com/logo-png/9/2/nissan-logo-png_seeklogo-99766.png",
+    "status": "active"
+  },
+  {
+    "name": "Honda",
+    "image": "https://1000logos.net/wp-content/uploads/2018/03/Honda-Logo-2000.png",
+    "status": "active"
+  },
+  {
+    "name": "BMW",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/1024px-BMW.svg.png",
+    "status": "active"
+  },
+  {
+    "name": "Mercedes-Benz",
+    "image": "https://images.seeklogo.com/logo-png/9/2/mercedes-benz-logo-png_seeklogo-91081.png",
+    "status": "active"
+  },
+  {
+    "name": "Toyota",
+    "image": "https://e7.pngegg.com/pngimages/116/77/png-clipart-toyota-corolla-car-toyota-rav4-honda-logo-toyota-emblem-text-thumbnail.png",
+    "status": "active"
+  },
+  {
+    "name": "Hyundai",
+    "image": "https://static.vecteezy.com/system/resources/previews/020/500/331/non_2x/hyundai-logo-brand-symbol-with-name-blue-design-south-korean-car-automobile-illustration-free-vector.jpg",
+    "status": "active"
+  },
+  {
+    "name": "Ford",
+    "image": "https://media.designrush.com/inspiration_images/291693/conversions/ford_logo_0_c4103a3013ad-mobile.jpg",
+    "status": "active"
+  },
+  {
+    "name": "Tesla",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png",
+    "status": "active"
+  },
+  {
+    "name": "Kia",
+    "image": "https://images.seeklogo.com/logo-png/7/2/kia-logo-png_seeklogo-78327.png",
+    "status": "active"
+  },
+  {
+    "name": "Chevrolet",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Chevrolet-logo.png",
+    "status": "active"
+  },
+  {
+    "name": "Volkswagen",
+    "image": "https://e7.pngegg.com/pngimages/570/523/png-clipart-volkswagen-logo-volkswagen-golf-car-porsche-cayenne-volkswagen-beetle-creative-car-car-standard-volkswagen-logo-emblem-free-logo-design-template.png",
+    "status": "active"
+  },
+  {
+    "name": "Lexus",
+    "image": "https://images.seeklogo.com/logo-png/8/1/lexus-logo-png_seeklogo-83673.png",
+    "status": "active"
+  },
+  {
+    "name": "Mazda",
+    "image": "https://fabrikbrands.com/wp-content/uploads/Mazda-Logo-1a-1155x770.png",
+    "status": "active"
+  },
+  {
+    "name": "Porsche",
+    "image": "https://images.seeklogo.com/logo-png/16/2/porsche-logo-png_seeklogo-168544.png",
+    "status": "active"
+  }
+]

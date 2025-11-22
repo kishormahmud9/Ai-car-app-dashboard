@@ -1,18 +1,17 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { AiOutlineStop } from "react-icons/ai";
 import Image from "next/image";
 import Header from "@/app/component/Header";
 import Cookies from "js-cookie";
+import toast, { Toaster } from "react-hot-toast";
 
 const API_BASE = "https://admin-dashboard.drivestai.com";
 const LIST_URL = `${API_BASE}/admin/user-list`;
 const PAGE_SIZE = 10;
 
-// function StopIcon() {
-//   return <AiOutlineStop className="h-6 w-6 text-white" />;
-// }
+// BASE URL – শেষে আর "/:userId" নাই, ওটা dynamic ভাবে use করব
+const STATUS_UPDATE_URL = `${API_BASE}/admin/status-update`;
 
 function fmtDate(d) {
   const dt = new Date(d);
@@ -29,14 +28,13 @@ export default function AgentApprovalTable() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [userdata, setUserdata] = useState([]);
-  // compute rows to display for current page:
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+
   const currentRows = React.useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
-    // If server returned a total (>0) and rows length <= PAGE_SIZE, assume rows are server-side page (render as-is)
     if (totalItems > 0 && rows.length <= PAGE_SIZE) {
       return rows;
     }
-    // otherwise treat rows as full list and slice for client-side pagination
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, page, totalItems]);
 
@@ -65,7 +63,7 @@ export default function AgentApprovalTable() {
 
         const token =
           Cookies.get("token") || localStorage.getItem("token") || "";
-        const url = `${LIST_URL}?page=${page}&limit=${PAGE_SIZE}`; // include paging if needed
+        const url = `${LIST_URL}?page=${page}&limit=${PAGE_SIZE}`;
         console.log("fetching users:", url);
 
         const res = await fetch(url, {
@@ -81,7 +79,7 @@ export default function AgentApprovalTable() {
           try {
             const j = await res.json();
             msg = j?.error || j?.message || msg;
-          } catch (err) {}
+          } catch (err) { }
           throw new Error(msg);
         }
 
@@ -108,7 +106,9 @@ export default function AgentApprovalTable() {
           date: u.createdAt ? fmtDate(u.createdAt) : u.date || "",
           avatar: u.avatar || u.photoUrl || u.avatarUrl || u.image,
           hasActiveSubscription: u.hasActiveSubscription,
-          isTrialUsed: u.isTrialUsed ,
+          isTrialUsed: u.isTrialUsed,
+          role: u.role,
+          status: u.status || "pending", // default "pending"
         }));
 
         if (!off) {
@@ -132,11 +132,65 @@ export default function AgentApprovalTable() {
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
+  // ✅ pure JS status change handler – তোমার route অনুযায়ী
+  const handleStatusChange = async (userId, newStatus) => {
+    const token =
+      Cookies.get("token") || localStorage.getItem("token") || "";
+
+    const prevRows = [...rows];
+
+    // optimistic update
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === userId ? { ...r, status: newStatus } : r
+      )
+    );
+    setStatusUpdatingId(userId);
+
+    try {
+      const res = await fetch(`${STATUS_UPDATE_URL}/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          status: newStatus, // backend: req.body.status
+        }),
+      });
+
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const j = await res.json();
+          msg = j?.error || j?.message || msg;
+        } catch (err) { }
+        throw new Error(msg);
+      }
+
+      const data = await res.json();
+      console.log("status update success:", data);
+      toast.success("status update succesfully");
+    } catch (e) {
+      console.error("status update error:", e);
+      setErr(e.message || "Failed to update status");
+      setRows(prevRows); // rollback
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  };
+
+  const statusOptions = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "pending", label: "Pending" },
+  ];
+
   return (
     <div className="w-full p-7 bg-white overflow-x-auto rounded-[10px]">
+      <Toaster position="top-center" />
       <Header />
 
-      {/* status */}
       <div className="mt-2 mb-2">
         {loading && <p className="text-sm text-gray-500">Loading…</p>}
         {err && <p className="text-sm text-red-600">{err}</p>}
@@ -152,14 +206,15 @@ export default function AgentApprovalTable() {
             <th className="py-3 pr-2 w-[10%]">Created Date</th>
             <th className="py-3 pr-4 w-[10%]">Subscribe</th>
             <th className="py-3 pr-4 w-[10%]">Trial Used</th>
-            {/* <th className="py-3 pr-2 w-[5%] ">Action</th> */}
+            <th className="py-3 pr-4 w-[10%]">Role</th>
+            <th className="py-3 pr-2 w-[5%] ">Action</th>
           </tr>
         </thead>
 
         <tbody className="bg-white">
           {!loading && currentRows.length === 0 && (
             <tr>
-              <td colSpan={6} className="py-6 text-center text-gray-500">
+              <td colSpan={9} className="py-6 text-center text-gray-500">
                 No users found
               </td>
             </tr>
@@ -167,6 +222,8 @@ export default function AgentApprovalTable() {
 
           {currentRows.map((r) => {
             const src = r.avatar?.startsWith("/") ? r.avatar : r.avatar || "/";
+            const statusValue = (r.status || "pending").toLowerCase();
+
             return (
               <tr key={r.id || r.sl} className="align-middle">
                 <td className="py-4 pr-4 text-[#333333] font-inter text-[16px] whitespace-nowrap">
@@ -204,21 +261,29 @@ export default function AgentApprovalTable() {
                   {r.hasActiveSubscription ? "Yes" : "No"}
                 </td>
 
-                {/* NEW COLUMN 2 */}
                 <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
                   {r.isTrialUsed ? "Yes" : "No"}
                 </td>
+                <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+                  {r.role ?? ""}
+                </td>
 
-                {/* <td className="py-4 pr-2">
-                  <button
-                    type="button"
-                    aria-label={`Block ${r.name}`}
-                    onClick={() => console.warn("Block action not implemented")}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[#015093] hover:opacity-90 transition"
+                <td className="py-4 pr-4">
+                  <select
+                    value={statusValue}
+                    onChange={(e) =>
+                      handleStatusChange(r.id, e.target.value)
+                    }
+                    disabled={statusUpdatingId === r.id}
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm font-inter text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#015093]"
                   >
-                    <StopIcon />
-                  </button>
-                </td> */}
+                    {statusOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </td>
               </tr>
             );
           })}
@@ -245,11 +310,10 @@ export default function AgentApprovalTable() {
               <button
                 key={`page-${p}`}
                 onClick={() => setPage(Number(p))}
-                className={`w-[30px] h-[30px] rounded-full font-inter text-[16px] flex items-center justify-center ${
-                  p === page
-                    ? "bg-[#015093] text-white"
-                    : "text-[#333333] hover:bg-slate-50"
-                }`}
+                className={`w-[30px] h-[30px] rounded-full font-inter text-[16px] flex items-center justify-center ${p === page
+                  ? "bg-[#015093] text-white"
+                  : "text-[#333333] hover:bg-slate-50"
+                  }`}
                 aria-current={p === page ? "page" : undefined}
               >
                 {p}
