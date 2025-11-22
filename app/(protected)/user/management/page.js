@@ -10,7 +10,6 @@ const API_BASE = "https://admin-dashboard.drivestai.com";
 const LIST_URL = `${API_BASE}/admin/user-list`;
 const PAGE_SIZE = 10;
 
-// BASE URL – শেষে আর "/:userId" নাই, ওটা dynamic ভাবে use করব
 const STATUS_UPDATE_URL = `${API_BASE}/admin/status-update`;
 
 function fmtDate(d) {
@@ -79,7 +78,7 @@ export default function AgentApprovalTable() {
           try {
             const j = await res.json();
             msg = j?.error || j?.message || msg;
-          } catch (err) { }
+          } catch (err) {}
           throw new Error(msg);
         }
 
@@ -108,7 +107,7 @@ export default function AgentApprovalTable() {
           hasActiveSubscription: u.hasActiveSubscription,
           isTrialUsed: u.isTrialUsed,
           role: u.role,
-          status: u.status || "pending", // default "pending"
+          status: u.status || "pending",
         }));
 
         if (!off) {
@@ -132,18 +131,13 @@ export default function AgentApprovalTable() {
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
-  // ✅ pure JS status change handler – তোমার route অনুযায়ী
   const handleStatusChange = async (userId, newStatus) => {
-    const token =
-      Cookies.get("token") || localStorage.getItem("token") || "";
+    const token = Cookies.get("token") || localStorage.getItem("token") || "";
 
     const prevRows = [...rows];
 
-    // optimistic update
     setRows((prev) =>
-      prev.map((r) =>
-        r.id === userId ? { ...r, status: newStatus } : r
-      )
+      prev.map((r) => (r.id === userId ? { ...r, status: newStatus } : r))
     );
     setStatusUpdatingId(userId);
 
@@ -155,7 +149,7 @@ export default function AgentApprovalTable() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          status: newStatus, // backend: req.body.status
+          status: newStatus,
         }),
       });
 
@@ -164,7 +158,7 @@ export default function AgentApprovalTable() {
         try {
           const j = await res.json();
           msg = j?.error || j?.message || msg;
-        } catch (err) { }
+        } catch (err) {}
         throw new Error(msg);
       }
 
@@ -174,7 +168,7 @@ export default function AgentApprovalTable() {
     } catch (e) {
       console.error("status update error:", e);
       setErr(e.message || "Failed to update status");
-      setRows(prevRows); // rollback
+      setRows(prevRows);
     } finally {
       setStatusUpdatingId(null);
     }
@@ -199,15 +193,15 @@ export default function AgentApprovalTable() {
       <table className=" w-full text-left table-fixed mt-[18px]">
         <thead>
           <tr className="bg-white text-[18px] font-inter font-semibold text-[#333333]">
-            <th className="py-3 pr-4 w-[10%]">User ID</th>
+            <th className="py-3 pr-4 w-[5%]">User ID</th>
             <th className="py-3 pr-4 w-[15%]">Full Name</th>
-            <th className="py-3 pr-4 w-[15%] ">Email</th>
+            <th className="py-3 pr-4 w-[16%] ">Email</th>
             <th className="py-3 pr-4 w-[10%]">Mobile Number</th>
             <th className="py-3 pr-2 w-[10%]">Created Date</th>
             <th className="py-3 pr-4 w-[10%]">Subscribe</th>
             <th className="py-3 pr-4 w-[10%]">Trial Used</th>
-            <th className="py-3 pr-4 w-[10%]">Role</th>
-            <th className="py-3 pr-2 w-[5%] ">Action</th>
+            <th className="py-3 pr-4 w-[7%]">Role</th>
+            <th className="py-3 pr-2 w-[7%] ">Action</th>
           </tr>
         </thead>
 
@@ -271,11 +265,9 @@ export default function AgentApprovalTable() {
                 <td className="py-4 pr-4">
                   <select
                     value={statusValue}
-                    onChange={(e) =>
-                      handleStatusChange(r.id, e.target.value)
-                    }
+                    onChange={(e) => handleStatusChange(r.id, e.target.value)}
                     disabled={statusUpdatingId === r.id}
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm font-inter text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#015093]"
+                    className="border border-gray-300 rounded-md p-1 font-inter text-[#333333] focus:outline-none focus:ring-2 cursor-pointer focus:ring-[#015093] "
                   >
                     {statusOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -310,10 +302,11 @@ export default function AgentApprovalTable() {
               <button
                 key={`page-${p}`}
                 onClick={() => setPage(Number(p))}
-                className={`w-[30px] h-[30px] rounded-full font-inter text-[16px] flex items-center justify-center ${p === page
-                  ? "bg-[#015093] text-white"
-                  : "text-[#333333] hover:bg-slate-50"
-                  }`}
+                className={`w-[30px] h-[30px] rounded-full font-inter text-[16px] flex items-center justify-center ${
+                  p === page
+                    ? "bg-[#015093] text-white"
+                    : "text-[#333333] hover:bg-slate-50"
+                }`}
                 aria-current={p === page ? "page" : undefined}
               >
                 {p}

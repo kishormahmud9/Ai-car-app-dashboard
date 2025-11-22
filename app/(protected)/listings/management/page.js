@@ -216,11 +216,11 @@ export default function AgentApprovalTable() {
       <table className="min-w-[920px] w-full text-left table-fixed mt-[18px]">
         <thead>
           <tr className="bg-white text-[18px] font-inter font-semibold text-[#333333]">
-            <th className="py-3 pr-4 w-[8%]">SL No</th>
+            <th className="py-3 pr-4 w-[5%]">SL No</th>
             <th className="py-3 pr-2 w-[15%]">Car Name</th>
-            <th className="py-3 pr-2 w-[12%]">Location</th>
-            <th className="py-3 pr-2 w-[8%]">Year</th>
-            <th className="py-3 pr-2 w-[12%]">Brand</th>
+            <th className="py-3 pr-2 w-[10%]">Location</th>
+            <th className="py-3 pr-2 w-[10%]">Year</th>
+            <th className="py-3 pr-2 w-[10%]">Brand</th>
             <th className="py-3 pr-2 w-[10%]">Price</th>
             <th className="py-3 pr-2 w-[10%]">Mileage</th>
             <th className="py-3 pr-2 w-[10%]">Image</th>
@@ -252,7 +252,7 @@ export default function AgentApprovalTable() {
               <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
                 {r.year ?? "N/A"}
               </td>
-              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
+              <td className="py-4 pr-4 text-[#333333] font-inter text-[16px] wrap-break-word">
                 {r.brand ?? "N/A"}
               </td>
               <td className="py-4 pr-4 text-[#333333] font-inter text-[16px]">
@@ -277,7 +277,7 @@ export default function AgentApprovalTable() {
                 <button
                   type="button"
                   onClick={() => openConfirm(r)}
-                  className="px-3 py-1 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 transition"
+                  className="px-3 font-inter py-1  rounded-md bg-red-600 text-white hover:bg-red-700 transition-all cursor-pointer"
                 >
                   Delete
                 </button>
